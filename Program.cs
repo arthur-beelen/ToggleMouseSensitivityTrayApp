@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Media;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -12,6 +13,9 @@ namespace ToggleMouseSensitivityTrayApp
     {
         private static NotifyIcon notifyIcon;
         private static bool shortcutKeyPressed = false;
+
+        private static int slowMouseSpeed = 5;
+        private static int fastMouseSpeed = 12;
 
         [DllImport("user32.dll")]
         private static extern bool RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vk);
@@ -38,6 +42,9 @@ namespace ToggleMouseSensitivityTrayApp
 
             // Set a tooltip for the icon
             notifyIcon.Text = "Toggle Mouse Sensitivity";
+
+            //Add title for notifications
+            notifyIcon.BalloonTipTitle = "Toggle Mouse Sensitivity";
 
             // Show the icon in the system tray
             notifyIcon.Visible = true;
@@ -107,23 +114,25 @@ namespace ToggleMouseSensitivityTrayApp
 
             if (!result)
             {
-                Console.WriteLine("Failed to retrieve mouse speed.");
+                Debug.WriteLine("Failed to retrieve mouse speed.");
                 return;
             }
 
-            Console.WriteLine("Current mouse speed is {0}", currentMouseSpeed);
+            Debug.WriteLine("Current mouse speed is {0}", currentMouseSpeed);
 
-            int mousespeed = currentMouseSpeed == 5 ? 10 : 5;
+            int mousespeed = currentMouseSpeed == slowMouseSpeed ? fastMouseSpeed : slowMouseSpeed;
 
             ptr = new IntPtr(mousespeed);
             result = SystemParametersInfo(0x0071, 0, ptr, 0); // SPI_SETMOUSESPEED
             if (!result)
             {
-                Console.WriteLine("Failed to set mouse speed.");
+                Debug.WriteLine("Failed to set mouse speed.");
             }
             else
             {
-                Console.WriteLine($"Mouse speed changed from {currentMouseSpeed} to {mousespeed}.");
+                notifyIcon.BalloonTipText = $"Mouse speed changed from {currentMouseSpeed} to {mousespeed}.";
+                notifyIcon.ShowBalloonTip(1500);
+                Debug.WriteLine($"Mouse speed changed from {currentMouseSpeed} to {mousespeed}.");
             }
         }
 
