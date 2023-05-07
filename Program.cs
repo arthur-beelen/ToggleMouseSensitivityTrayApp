@@ -1,10 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Media;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace ToggleMouseSensitivityTrayApp
@@ -31,6 +27,7 @@ namespace ToggleMouseSensitivityTrayApp
         [STAThread]
         static void Main()
         {
+            Debug.WriteLine("Start of main()");
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
@@ -38,7 +35,7 @@ namespace ToggleMouseSensitivityTrayApp
             notifyIcon = new NotifyIcon();
 
             // Set the icon to be displayed in the system tray
-            notifyIcon.Icon = new System.Drawing.Icon("icon.ico");
+            notifyIcon.Icon = Properties.Resources.icon;
 
             // Set a tooltip for the icon
             notifyIcon.Text = "Toggle Mouse Sensitivity";
@@ -130,6 +127,7 @@ namespace ToggleMouseSensitivityTrayApp
             }
             else
             {
+                //Show Balloon for notification
                 notifyIcon.BalloonTipText = $"Mouse speed changed from {currentMouseSpeed} to {mousespeed}.";
                 notifyIcon.ShowBalloonTip(1500);
                 Debug.WriteLine($"Mouse speed changed from {currentMouseSpeed} to {mousespeed}.");
