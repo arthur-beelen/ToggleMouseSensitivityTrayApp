@@ -10,8 +10,9 @@ namespace ToggleMouseSensitivityTrayApp
         private static NotifyIcon notifyIcon;
         private static bool shortcutKeyPressed = false;
 
-        private static int slowMouseSpeed = 5;
-        private static int fastMouseSpeed = 12;
+        public static int mouseSpeed1 = 5;
+        public static int mouseSpeed2 = 12;
+        public static int currentMouseSpeed = 0;
 
         [DllImport("user32.dll")]
         private static extern bool RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vk);
@@ -71,13 +72,59 @@ namespace ToggleMouseSensitivityTrayApp
             // Handle hotkey events
             Application.AddMessageFilter(new MessageFilter());
 
+            //Fetch current mouse speed
+            currentMouseSpeed = FetchCurrentMouseSpeed();
+
+            //Load settings from config.ini
+            LoadSettings();
+
             // Start the application loop
             Application.Run();
         }
 
+        //Load settings from config.ini
+        private static void LoadSettings() {
+            //Check if config.ini exists, create new config.ini if not
+            if (!System.IO.File.Exists("config.ini")) {
+                Debug.WriteLine("config.ini not found, creating new config.ini");
+
+                //Build string with contents for ini file, using the current mouse speed as profile 1
+                string contents = $"mouseSpeed1={currentMouseSpeed}\nmouseSpeed2=10";
+
+                System.IO.File.WriteAllText("config.ini", contents);
+            }
+
+            //Else fetch values from config.ini
+            else {
+                Debug.WriteLine("config.ini found, loading settings");
+                //Read all lines from config.ini
+                string[] lines = System.IO.File.ReadAllLines("config.ini");
+                //Loop through all lines
+                foreach (string line in lines) {
+                    //Split line into key and value
+                    string[] splitLine = line.Split('=');
+                    //Check if key is mouseSpeed1
+                    if (splitLine[0] == "mouseSpeed1") {
+                        //Set mouseSpeed1 to value
+                        mouseSpeed1 = int.Parse(splitLine[1]);
+                    }
+                    //Check if key is mouseSpeed2
+                    else if (splitLine[0] == "mouseSpeed2") {
+                        //Set mouseSpeed2 to value
+                        mouseSpeed2 = int.Parse(splitLine[1]);
+                    }
+                }
+            }
+        }
+
+
+
+
         private static void OpenSettings(object sender, EventArgs e)
         {
-
+            //This function opens the SettingsForm
+            SettingsForm settingsForm = new SettingsForm();
+            settingsForm.ShowDialog();
         }
 
         private static void OnExit(object sender, EventArgs e)
@@ -97,30 +144,17 @@ namespace ToggleMouseSensitivityTrayApp
 
             Debug.WriteLine("shortcut key pressed");
 
-            // Change the mouse speed or do any other action
-            // ...
 
 
-            IntPtr ptr;
-            ptr = Marshal.AllocCoTaskMem(4);
 
-            bool result = SystemParametersInfo(0x0070, 0, ptr, 0); // SPI_GETMOUSESPEED
-
-            int currentMouseSpeed = Marshal.ReadInt32(ptr);
-            Marshal.FreeCoTaskMem(ptr);
-
-            if (!result)
-            {
-                Debug.WriteLine("Failed to retrieve mouse speed.");
-                return;
-            }
+            currentMouseSpeed = FetchCurrentMouseSpeed();
 
             Debug.WriteLine("Current mouse speed is {0}", currentMouseSpeed);
 
-            int mousespeed = currentMouseSpeed == slowMouseSpeed ? fastMouseSpeed : slowMouseSpeed;
+            int mousespeed = currentMouseSpeed == mouseSpeed1 ? mouseSpeed2 : mouseSpeed1;
 
-            ptr = new IntPtr(mousespeed);
-            result = SystemParametersInfo(0x0071, 0, ptr, 0); // SPI_SETMOUSESPEED
+            IntPtr ptr = new IntPtr(mousespeed);
+            bool result = SystemParametersInfo(0x0071, 0, ptr, 0); // SPI_SETMOUSESPEED
             if (!result)
             {
                 Debug.WriteLine("Failed to set mouse speed.");
@@ -132,6 +166,30 @@ namespace ToggleMouseSensitivityTrayApp
                 notifyIcon.ShowBalloonTip(1500);
                 Debug.WriteLine($"Mouse speed changed from {currentMouseSpeed} to {mousespeed}.");
             }
+            Marshal.FreeHGlobal(ptr);
+        }
+
+        private static int FetchCurrentMouseSpeed() {
+            IntPtr ptr;
+            ptr = Marshal.AllocCoTaskMem(4);
+
+            bool result = SystemParametersInfo(0x0070, 0, ptr, 0); // SPI_GETMOUSESPEED
+
+            int speed = Marshal.ReadInt32(ptr);
+            Marshal.FreeCoTaskMem(ptr);
+
+            if (!result) {
+                Debug.WriteLine("Failed to retrieve mouse speed.");
+                return -1;
+            }
+
+            return speed;
+        }
+
+        internal static void WriteIniFile(int mouseSpeed1, int mouseSpeed2) {
+            //Change ini file contents
+            string contents = $"mouseSpeed1={mouseSpeed1}\nmouseSpeed2={mouseSpeed2}";
+            System.IO.File.WriteAllText("config.ini", contents);
         }
 
         private class MessageFilter : IMessageFilter
