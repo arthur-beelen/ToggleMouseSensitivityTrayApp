@@ -186,7 +186,7 @@ namespace ToggleMouseSensitivityTrayApp
             return speed;
         }
 
-        internal static void WriteIniFile(int mouseSpeed1, int mouseSpeed2) {
+        internal static void SaveSettings(int mouseSpeed1, int mouseSpeed2) {
             //Change ini file contents
             string contents = $"mouseSpeed1={mouseSpeed1}\nmouseSpeed2={mouseSpeed2}";
             System.IO.File.WriteAllText("config.ini", contents);

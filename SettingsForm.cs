@@ -28,7 +28,7 @@ namespace ToggleMouseSensitivityTrayApp {
             Program.mouseSpeed2 = trackBar2.Value;
 
             //Save values in config.ini (like Porgram.cs)
-            Program.WriteIniFile(Program.mouseSpeed1, Program.mouseSpeed2);
+            Program.SaveSettings(Program.mouseSpeed1, Program.mouseSpeed2);
 
 
             //Close the settings window
