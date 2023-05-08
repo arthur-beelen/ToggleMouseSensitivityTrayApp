@@ -10,9 +10,9 @@ namespace ToggleMouseSensitivityTrayApp
         private static NotifyIcon notifyIcon;
         private static bool shortcutKeyPressed = false;
 
-        public static int mouseSpeed1 = 5;
-        public static int mouseSpeed2 = 12;
-        public static int currentMouseSpeed = 0;
+        public static int mouseSpeed1;
+        public static int mouseSpeed2;
+        public static int currentMouseSpeed;
 
         [DllImport("user32.dll")]
         private static extern bool RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vk);
